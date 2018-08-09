@@ -2,7 +2,7 @@
 
 I read code (https://github.com/YCG09/chinese_ocr), and made some change (replace densenet by classic cnn), it works.
 
-And now, I'm tring to update it from keras to tensorflow. But the loss doesn't decrease in my tensorflow version.
+And now, I'm trying to update it from keras to tensorflow. But the loss doesn't decrease in my tensorflow version.
 
 This repository contains both versions (Keras and Tensorflow).
 
