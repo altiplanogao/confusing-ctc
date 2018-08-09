@@ -3,6 +3,7 @@ import os
 import time
 import tensorflow as tf
 
+from config import Config
 from dataset.dummy_ds import DummyDS
 from helpers import delta_time_str
 
@@ -65,18 +66,8 @@ class OCR(object):
                                    sequence_length=self.seq_len,
                                    time_major=False)
         self.cost = tf.reduce_mean(self.loss)
-        tf.summary.scalar('cost', self.cost)
-
-        self.lrn_rate = tf.train.exponential_decay(FLAGS.initial_learning_rate,
-                                                   self.global_step,
-                                                   FLAGS.decay_steps,
-                                                   FLAGS.decay_rate,
-                                                   staircase=True)
-        tf.summary.scalar('learning_rate', self.lrn_rate)
-
-        self.optimizer = tf.train.RMSPropOptimizer(learning_rate=self.lrn_rate)
-        minimize_op = self.optimizer.minimize(self.loss, global_step=self.global_step)
-        self.train_op = minimize_op
+        self.optimizer = tf.train.AdamOptimizer(learning_rate=Config.LEARNING_RATE)
+        self.train_op = self.optimizer.minimize(self.loss, global_step=self.global_step)
 
 class _GenConvertor:
     def __init__(self):
@@ -100,10 +91,8 @@ if __name__ == '__main__':
     train_gen, train_len = ds.train_batch_gen(batch_size, post_op=gen_conv.convert, loops=None)
     test_gen, test_len = ds.test_batch_gen(batch_size, post_op=gen_conv.convert, loops=None)
 
-    num_train_samples = train_len  # 100000
-    num_batches_per_epoch = int(num_train_samples / batch_size)  # example: 100000/100
-    num_val_samples = test_len
-    num_batches_per_epoch_val = int(num_val_samples / batch_size)  # example: 10000/100
+    num_batches_per_epoch = int(train_len / batch_size)  # example: 100000/100
+    num_batches_per_epoch_val = int(test_len / batch_size)  # example: 10000/100
 
     model = OCR(feature_shape=feature_shape, nclass=nclass, training=True)
     model.build_graph()
@@ -130,8 +119,8 @@ if __name__ == '__main__':
                 feed = {model.inputs: batch_inputs,
                         model.labels: batch_labels}
 
-                summary_str, logits, batch_cost, lbs, seq_len, lrn_rate, step, _ = \
-                    sess.run([model.merged_summay, model.logits, model.cost, model.labels, model.seq_len, model.lrn_rate, model.global_step, model.train_op], feed)
+                logits, batch_cost, lbs, seq_len, step, _ = \
+                    sess.run([model.logits, model.cost, model.labels, model.seq_len, model.global_step, model.train_op], feed)
 
                 train_cost += batch_cost * batch_size
 
@@ -145,7 +134,6 @@ if __name__ == '__main__':
                           'batch.{0}({1:.2%})'.format(cur_batch, progress),
                           ': time:{:2.2f}s'.format(time.time() - batch_start_time),
                           ', loss:{:2.2f} '.format(batch_cost),
-                          ', learn_rate:{:5.5f}'.format(lrn_rate),
                           '[Used: {0}, Total: {1}, Remaining: {2}]'.format(delta_time_str(epoch_time_cost),
                                                                            delta_time_str(epoch_time_total),
                                                                            delta_time_str(epoch_time_total-epoch_time_cost)))

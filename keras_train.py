@@ -1,8 +1,8 @@
 import os
 import os.path as path
 
-import tensorflow
-from tensorflow.python.keras.callbacks import ModelCheckpoint, EarlyStopping, TensorBoard, LearningRateScheduler
+import tensorflow as tf
+from tensorflow.python.keras.callbacks import EarlyStopping, LearningRateScheduler
 from tensorflow.python.keras.layers import Lambda
 
 from tensorflow.python.keras import backend as K, Input, Model
@@ -61,13 +61,10 @@ class ModelTrainer:
         labels = Input(name='the_labels', shape=[None], dtype='int32')
         label_length = Input(name='label_length', shape=[1], dtype='int32')
 
-        # labels = Input(name=Config.LABELS, shape=(None,), sparse=True, dtype='int32')
-
         base_input = basemodel.input
         base_output = basemodel.output
 
         def ctc_lambda_func(args):
-            import tensorflow as tf
             base_output, labels, label_length = args
             base_output_shape = tf.shape(base_output)
             sequence_length = tf.fill([base_output_shape[0],], base_output_shape[1])
@@ -95,7 +92,6 @@ class ModelTrainer:
                             validation_data=self.validation_gen,
                             validation_steps=self.validation_steps // self.batch_size,
                             callbacks=[earlystop, changelr])
-        pass
 
 
 if __name__ == '__main__':
@@ -105,7 +101,6 @@ if __name__ == '__main__':
     nclass = 3000
 
     model_factory = ModelFactory()
-
     convertor = _GenConvertor()
     ds = DummyDS(nclass=nclass, max_label_len=max_label_len, image_size=img_size, train_count=1000, test_count=100)
     train_gen, train_len = ds.train_batch_gen(batch_size,convertor.convert, loops=None)
@@ -116,5 +111,3 @@ if __name__ == '__main__':
                            validation_gen=test_gen, validation_steps=test_len,
                            batch_size=batch_size)
     trainer.train()
-
-    pass
