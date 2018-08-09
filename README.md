@@ -8,6 +8,7 @@ This repository contains both versions (Keras and Tensorflow).
 
 Problem is not solved currently, and I'll make update if any progress.
 
+If you have any idea, please reply to my question [here](https://stackoverflow.com/questions/51766943/ctc-loss-doesnt-decrease-using-tensorflow-while-it-decreases-using-keras). Many may thanks.
 
 ## Code explain
 dataset: contains 2 kind of dataset (provide data in generator way):
