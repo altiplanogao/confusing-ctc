@@ -1,0 +1,4 @@
+class Config:
+    INPUTS = 'inputs'
+    LABELS = 'labels'
+    OUTPUTS = 'outputs'
